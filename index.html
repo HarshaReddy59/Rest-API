@@ -7,150 +7,218 @@
     <style>
         body {
             font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
             padding: 20px;
-            background-color: #f9f9f9;
         }
+
         h1 {
+            text-align: center;
             color: #333;
         }
-        .container {
+
+        form {
             max-width: 600px;
-            margin: auto;
+            margin: 0 auto;
             background-color: #fff;
             padding: 20px;
-            border-radius: 5px;
+            border-radius: 8px;
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
         }
-        input[type="text"], select {
+
+        label {
+            font-weight: bold;
+            margin-bottom: 10px;
+            display: block;
+        }
+
+        input[type="text"], input[type="file"] {
             width: 100%;
             padding: 10px;
-            margin: 10px 0;
-            border-radius: 5px;
+            margin-bottom: 20px;
             border: 1px solid #ccc;
+            border-radius: 4px;
         }
+
         button {
-            background-color: #28a745;
+            background-color: #4CAF50;
             color: white;
-            padding: 10px;
             border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+
+        #responseOptions {
+            max-width: 600px;
+            margin: 20px auto;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        #responseOptions div {
+            margin-bottom: 10px;
+        }
+
+        #responseDisplay {
+            max-width: 600px;
+            margin: 20px auto;
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        #showSelected {
+            background-color: #008CBA;
+            margin: 20px auto 0;
+            display: block;
+            width: 100%;
+            text-align: center;
+            padding: 10px;
             border-radius: 5px;
             cursor: pointer;
         }
-        button:hover {
-            background-color: #218838;
+
+        #showSelected:hover {
+            background-color: #007B9A;
         }
-        .response {
-            margin-top: 20px;
+
+        #responseDisplay strong {
+            color: #333;
         }
-        .error {
-            color: red;
+
+        @media (max-width: 600px) {
+            form, #responseOptions, #responseDisplay {
+                width: 100%;
+            }
+
+            button, #showSelected {
+                width: 100%;
+            }
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>API Frontend</h1>
-
-        <label for="jsonInput">Enter JSON Data:</label>
-        <input type="text" id="jsonInput" placeholder='e.g., {"data": ["A", "B", "z"]}' />
-
-        <label for="filter">Select Fields to Show:</label>
-        <select id="filter" multiple>
-            <option value="alphabets">Alphabets</option>
-            <option value="numbers">Numbers</option>
-            <option value="highest_lowercase_alphabet">Highest Lowercase Alphabet</option>
-        </select>
-
-    
-        <button id="submitButton">Submit</button>
-
-    
-        <div class="response" id="response">
+    <h1>BFHL Data Submission</h1>
+    <form id="dataForm">
+        <label for="data">Enter Data (comma separated):</label>
+        <input type="text" id="data" placeholder='e.g., "M", "1", "334", "4", "B", "Z", "a"'><br><br>
         
-        </div>
+        <label for="file">Upload File:</label>
+        <input type="file" id="fileInput"><br><br>
 
-        
-        <p class="error" id="errorMessage" style="display: none;"></p>
-    </div>
+        <button type="submit">Submit</button>
+    </form>
+
+    <div id="responseOptions" style="margin-top: 20px;"></div>
+    <button id="showSelected" style="display: none;">Show Selected</button>
+    <div id="responseDisplay" style="margin-top: 20px;"></div>
 
     <script>
-        const apiUrl = 'https://rest-api-8c80.onrender.com';
-        
-        const jsonInput = document.getElementById('jsonInput');
-        const filterSelect = document.getElementById('filter');
-        const submitButton = document.getElementById('submitButton');
-        const responseDiv = document.getElementById('response');
-        const errorMessage = document.getElementById('errorMessage');
+        let lastResponse = {};  // Store the last response here
 
-       
-        function isValidJson(input) {
-            try {
-                JSON.parse(input);
-                return true;
-            } catch (e) {
-                return false;
-            }
-        }
+        document.getElementById('dataForm').addEventListener('submit', function(event) {
+            event.preventDefault();
 
-        
-        async function sendDataToAPI(jsonData) {
-            try {
-                const response = await fetch(apiUrl, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: jsonData,
-                });
-                return await response.json();
-            } catch (error) {
-                console.error('Error:', error);
-                return null;
-            }
-        }
+            const dataInput = document.getElementById('data').value;
+            const dataArray = dataInput.split(',').map(item => item.trim());
 
-    
-        function displayFilteredResponse(responseData) {
-            const selectedOptions = Array.from(filterSelect.selectedOptions).map(option => option.value);
-            let displayData = '';
+            const fileInput = document.getElementById('fileInput').files[0];
+            let file_b64 = null;
 
-            if (selectedOptions.includes('alphabets') && responseData.alphabets) {
-                displayData += <p><strong>Alphabets:</strong> ${responseData.alphabets.join(', ')}</p>;
-            }
-
-            if (selectedOptions.includes('numbers') && responseData.numbers) {
-                displayData += <p><strong>Numbers:</strong> ${responseData.numbers.join(', ')}</p>;
-            }
-
-            if (selectedOptions.includes('highest_lowercase_alphabet') && responseData.highest_lowercase_alphabet) {
-                displayData += <p><strong>Highest Lowercase Alphabet:</strong> ${responseData.highest_lowercase_alphabet}</p>;
-            }
-
-            responseDiv.innerHTML = displayData || '<p>No data to display for the selected filters.</p>';
-        }
-
-       
-        submitButton.addEventListener('click', async () => {
-            const jsonData = jsonInput.value.trim();
-
-            // Validate JSON input
-            if (!isValidJson(jsonData)) {
-                errorMessage.textContent = 'Invalid JSON format. Please correct the input.';
-                errorMessage.style.display = 'block';
-                responseDiv.innerHTML = '';
-                return;
-            }
-
-            errorMessage.style.display = 'none';
-
-            
-            const responseData = await sendDataToAPI(jsonData);
-
-            if (responseData && responseData.is_success) {
-                displayFilteredResponse(responseData);
+            if (fileInput) {
+                const reader = new FileReader();
+                reader.onloadend = function () {
+                    file_b64 = reader.result.split(',')[1];  // Get base64 part
+                    sendData(dataArray, file_b64);
+                };
+                reader.readAsDataURL(fileInput);
             } else {
-                responseDiv.innerHTML = '<p>Error processing the data or no valid response from API.</p>';
+                sendData(dataArray, file_b64);
             }
+        });
+
+        function sendData(dataArray, file_b64) {
+            fetch('https://bajaj1-i1h1.onrender.com/bfhl', { 
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ data: dataArray, file_b64: file_b64 })
+            })
+            .then(response => response.json())
+            .then(data => {
+                lastResponse = data;  // Store the response for later use
+                displayResponse(data);  // Call to display the response properly
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                document.getElementById('responseDisplay').innerHTML = `<p>Error: ${error.message}</p>`;
+            });
+        }
+
+        function displayResponse(response) {
+            // Clear previous options
+            document.getElementById('responseOptions').innerHTML = "";
+            document.getElementById('responseDisplay').innerHTML = "";
+            document.getElementById('showSelected').style.display = "none";
+
+            // Create checkboxes for all response items
+            const responseKeys = [
+                "is_success",
+                "user_id",
+                "email",
+                "roll_number",
+                "numbers",
+                "alphabets",
+                "highest_lowercase_alphabet",
+                "file_valid",
+                "file_mime_type",
+                "file_size_kb"
+            ];
+
+            responseKeys.forEach(key => {
+                const checkbox = document.createElement('input');
+                checkbox.type = 'checkbox';
+                checkbox.id = key;
+                checkbox.value = key;
+
+                const label = document.createElement('label');
+                label.htmlFor = key;
+                label.textContent = key;
+
+                const item = document.createElement('div');
+                item.appendChild(checkbox);
+                item.appendChild(label);
+                document.getElementById('responseOptions').appendChild(item);
+            });
+
+            document.getElementById('showSelected').style.display = "inline-block";
+        }
+
+        document.getElementById('showSelected').addEventListener('click', function() {
+            const selectedValues = [];
+            const checkboxes = document.querySelectorAll('#responseOptions input[type="checkbox"]');
+            checkboxes.forEach(checkbox => {
+                if (checkbox.checked) {
+                    selectedValues.push(checkbox.value);
+                }
+            });
+
+            const responseText = selectedValues.map(key => {
+                const value = lastResponse[key];  // Use lastResponse to display selected values
+                return `<strong>${key}:</strong> ${Array.isArray(value) ? `[ ${value.join(", ")} ]` : value}<br>`;
+            }).join('');
+
+            document.getElementById('responseDisplay').innerHTML = responseText;
         });
     </script>
 </body>
