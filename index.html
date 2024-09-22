@@ -54,7 +54,6 @@
         <label for="jsonInput">Enter JSON Data:</label>
         <input type="text" id="jsonInput" placeholder='e.g., {"data": ["A", "B", "z"]}' />
 
-        <!-- Dropdown for Filtering Response -->
         <label for="filter">Select Fields to Show:</label>
         <select id="filter" multiple>
             <option value="alphabets">Alphabets</option>
@@ -62,29 +61,28 @@
             <option value="highest_lowercase_alphabet">Highest Lowercase Alphabet</option>
         </select>
 
-        <!-- Submit Button -->
+    
         <button id="submitButton">Submit</button>
 
-        <!-- Display Response -->
+    
         <div class="response" id="response">
-            <!-- API response will be displayed here -->
+        
         </div>
 
-        <!-- Error Message -->
+        
         <p class="error" id="errorMessage" style="display: none;"></p>
     </div>
 
     <script>
-        const apiUrl = '"C:\Users\Windows 10 Home\rest-api-project\index.js"'; // Replace with your API URL
-
-        // Get DOM elements
+        const apiUrl = 'https://rest-api-8c80.onrender.com';
+        
         const jsonInput = document.getElementById('jsonInput');
         const filterSelect = document.getElementById('filter');
         const submitButton = document.getElementById('submitButton');
         const responseDiv = document.getElementById('response');
         const errorMessage = document.getElementById('errorMessage');
 
-        // Function to validate JSON input
+       
         function isValidJson(input) {
             try {
                 JSON.parse(input);
@@ -94,7 +92,7 @@
             }
         }
 
-        // Function to send data to the API and process the response
+        
         async function sendDataToAPI(jsonData) {
             try {
                 const response = await fetch(apiUrl, {
@@ -111,7 +109,7 @@
             }
         }
 
-        // Function to filter and display response based on dropdown selection
+    
         function displayFilteredResponse(responseData) {
             const selectedOptions = Array.from(filterSelect.selectedOptions).map(option => option.value);
             let displayData = '';
@@ -131,7 +129,7 @@
             responseDiv.innerHTML = displayData || '<p>No data to display for the selected filters.</p>';
         }
 
-        // Button click event handler
+       
         submitButton.addEventListener('click', async () => {
             const jsonData = jsonInput.value.trim();
 
@@ -143,13 +141,12 @@
                 return;
             }
 
-            errorMessage.style.display = 'none'; // Hide error message if JSON is valid
+            errorMessage.style.display = 'none';
 
-            // Send the valid JSON to the API
+            
             const responseData = await sendDataToAPI(jsonData);
 
             if (responseData && responseData.is_success) {
-                // Display the filtered response based on dropdown selection
                 displayFilteredResponse(responseData);
             } else {
                 responseDiv.innerHTML = '<p>Error processing the data or no valid response from API.</p>';
